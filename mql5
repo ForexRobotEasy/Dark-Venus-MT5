@@ -1,0 +1,63 @@
+
+// Dark Venus MT5 Expert Advisor
+// Developer's site: forexroboteasy.com
+// Development: Forex Robot Easy Team
+
+// External settings
+extern int BollingerPeriod = 20;
+extern double BollingerDeviation = 2.0;
+extern double StopLoss = 100.0;
+extern double TakeProfit = 200.0;
+
+// Trade function
+void trade()
+{
+   // Calculate Bollinger Bands
+   double upperBand = iBands(_Symbol, _Period, BollingerPeriod, BollingerDeviation, 0, PRICE_CLOSE, MODE_UPPER, 0);
+   double lowerBand = iBands(_Symbol, _Period, BollingerPeriod, BollingerDeviation, 0, PRICE_CLOSE, MODE_LOWER, 0);
+
+   // Check if price crosses above upper band
+   if (Close[1] < upperBand && Close[0] > upperBand)
+   {
+      // Open a buy order
+      double sl = Ask - StopLoss * _Point;
+      double tp = Ask + TakeProfit * _Point;
+      OrderSend(_Symbol, OP_BUY, 1.0, Ask, 0, sl, tp, 'Dark Venus MT5', MagicNumber, 0, Green);
+   }
+
+   // Check if price crosses below lower band
+   if (Close[1] > lowerBand && Close[0] < lowerBand)
+   {
+      // Open a sell order
+      double sl = Bid + StopLoss * _Point;
+      double tp = Bid - TakeProfit * _Point;
+      OrderSend(_Symbol, OP_SELL, 1.0, Bid, 0, sl, tp, 'Dark Venus MT5', MagicNumber, 0, Red);
+   }
+}
+
+// Start function
+void OnStart()
+{
+   // Loop through all available symbols
+   for (int i = 0; i < SymbolsTotal(); i++)
+   {
+      // Select the symbol
+      if (SymbolSelect(_Symbol[i], true))
+      {
+         // Set the required chart timeframe
+         PeriodSet(_Period);
+         
+         // Set the EA magic number
+         int MagicNumber = i + 1;
+         
+         // Enable auto trading
+         AutoTrading(true);
+         
+         // Enable real-time ticks
+         RefreshRates();
+         
+         // Call the trade function
+         trade();
+      }
+   }
+}
